@@ -2,11 +2,11 @@ NEMO 3.6, GYRE configuration
 ============================
 
 juha.lento@csc.fi
-2016-03-09
-
+2016-05-16
 
 Build and test documentation for NEMO 3.6 in GYRE
-configuration. Example commands (in **bold**) are tested in CSC's Cray XC40, `sisu.csc.fi`.
+configuration. Example commands are tested in CSC's Cray XC40,
+`sisu.csc.fi`.
 
 
 Download NEMO and XIOS sources
@@ -35,38 +35,49 @@ http://www.nemo-ocean.eu/Using-NEMO/User-Guides/Basics/XIOS-IO-server-installati
 svn co -r819 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0
 ```
 
-## Set up build environment
 
-XIOS uses NETCDF4.
+Build XIOS
+----------
 
-> **module load cray-hdf5-parallel cray-netcdf-hdf5parallel**
+### Build environment
 
-################
-# Compile XIOS #
-################
+Xios requires Netcdf4.
 
-cd xios-1.0
+```
+module load cray-hdf5-parallel cray-netcdf-hdf5parallel
+```
+
+
+### Build command
+
+```
+cd xios-2.0
 ./make_xios --arch XC30_Cray
+```
 
-##################################
-# Compile NEMO GYRE configuation #
-##################################
 
-fixfcm() {
-    local name value prog=""
-    for arg in "$@"; do
-        name="${arg%%=*}"
-	value=$(printf %q "${arg#*=}")
-	value="${value//\//\/}"
-        prog="s/(^%${name} )(.*)/\\1 ${value}/"$'\n'"$prog"
-    done
-    sed -r -e "$prog"
-}
+Build NEMO 3.6 in GYRE configuration
+------------------------------------
 
+### Edit (create) configuration files
+
+
+```
 cd ../NEMOGCM/CONFIG
-fixfcm NCDF_HOME="$NETCDF_DIR" HDF5_HOME="$HDF5_DIR" XIOS_HOME="$(readlink -f ../../xios-1.0)" \
-    < ../ARCH/arch-XC40_METO.fcm > ../ARCH/arch-MY_CONFIG.fcm
+curl -o fixfcm https://raw.githubusercontent.com/jlento/nemo/master/fixfcm.bash
+chmod u+x fixfcm
+./fixfcm < ../ARCH/arch-XC40_METO.fcm > ../ARCH/arch-MY_CONFIG.fcm \
+	NCDF_HOME="$NETCDF_DIR" \
+	HDF5_HOME="$HDF5_DIR" \
+	XIOS_HOME="$(readlink -f ../../xios-2.0)"
+```
+
+### Build
+
+```
 ./makenemo -m MY_CONFIG -r GYRE -n MY_GYRE
+```
+
 
 
 #################
