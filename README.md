@@ -12,21 +12,30 @@ configuration. Example commands (in **bold**) are tested in CSC's Cray XC40, `si
 Download NEMO and XIOS sources
 ------------------------------
 
-1. Register at the Nemo webpage http://www.nemo-ocean.eu
+### Register
 
-2. Check out NEMO sources
+http://www.nemo-ocean.eu
 
-> **svn --username <username> --password <password> --no-auth-cache co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2015/nemo_v3_6_STABLE/NEMOGCM**
-> ...
-> Checked out revision 6536.
 
-3. Check out XIOS2 sources
+### Check out NEMO sources
+
+
+```
+svn --username USERNAME --password PASSWORD --no-auth-cache co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2015/nemo_v3_6_STABLE/NEMOGCM
+...
+Checked out revision 6536.
+```
+
+
+### Check out XIOS2 sources
 
 http://www.nemo-ocean.eu/Using-NEMO/User-Guides/Basics/XIOS-IO-server-installation-and-use
 
-> ** svn co -r819 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0**
+```
+svn co -r819 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0
+```
 
-4. Set up build environment
+## Set up build environment
 
 XIOS uses NETCDF4.
 
