@@ -1,4 +1,4 @@
-#!/urs/bin/env bash
+#!/usr/bin/env bash
 
 # A tool to modify XML files used by FCM
 
