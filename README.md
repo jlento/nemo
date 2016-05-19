@@ -22,7 +22,7 @@ http://www.nemo-ocean.eu
 ```
 svn --username USERNAME --password PASSWORD --no-auth-cache co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2015/nemo_v3_6_STABLE/NEMOGCM
 ...
-Checked out revision 6536.
+Checked out revision 6542.
 ```
 
 
@@ -62,11 +62,23 @@ cd xios-2.0
 Build NEMO 3.6 in GYRE configuration
 ------------------------------------
 
+### Get a bash helper for editing configuration files
+
+```
+source <(curl -s https://raw.githubusercontent.com/jlento/nemo/master/fixfcm.bash)
+```
+
+...or if you have a buggy bash 3.2...
+
+```
+wget https://raw.githubusercontent.com/jlento/nemo/master/fixfcm.bash; source fixfcm.bash
+```
+
+
 ### Edit (create) configuration files
 
 ```
 cd ../NEMOGCM/CONFIG
-source <(curl -s https://raw.githubusercontent.com/jlento/nemo/master/fixfcm.bash)
 fixfcm < ../ARCH/arch-XC40_METO.fcm > ../ARCH/arch-MY_CONFIG.fcm \
 	NCDF_HOME="$NETCDF_DIR" \
 	HDF5_HOME="$HDF5_DIR" \
@@ -77,78 +89,58 @@ fixfcm < ../ARCH/arch-XC40_METO.fcm > ../ARCH/arch-MY_CONFIG.fcm \
 ### Build
 
 ```
-./makenemo -m MY_CONFIG -r GYRE_XIOS -n MY_GYRE
+./makenemo -m MY_CONFIG -r GYRE_XIOS -n MY_GYRE add_key "key_nosignedzero"
 ```
+
 
 Run first GYRE test
 -------------------
 
+### Preapare input files
+
 ```
 cd MY_GYRE/EXP00
-aprun -n 4 ./opa
+sed -i '/using_server/s/false/true/' iodef.xml
+sed -i '/&nameos/a ln_useCT = .false.' namelist_cfg
+sed -i '/&namctl/a nn_bench = 1' namelist_cfg
 ```
 
-##############################
-# Have a look at the results #
-##############################
+### Run the experiment interactively
 
-cd ../../../TOOLS/
-./maketools -n REBUILD
+```
+aprun -n 4 ../BLD/bin/nemo.exe : -n 2 ../../../../xios-2.0/bin/xios_server.exe
+```
 
-cd ../CONFIG/MY_GYRE/EXP00/
-sed -i.orig '101s/.*/aprun -n 1 &/' ../../../TOOLS/REBUILD/rebuild
-../../../TOOLS/REBUILD/rebuild -o GYRE_5d_00010101_00011230_grid_W.nc GYRE_5d_00010101_00011230_grid_W_????.nc
-ncview GYRE_5d_00010101_00011230_grid_W.nc
 
-########################
-# Download NEMO source #
-########################
+GYRE configuration with higher resolution
+-----------------------------------------
 
-wget http://www.prace-ri.eu/UEABS/NEMO/NEMO_Source.tar.gz
+### Modify configuration
 
-# Extract only experiment configuration
-tar --wildcards -x -v -f NEMO_Source.tar.gz 'NEMOGCM/CONFIG/ORCA*'
+Parameter `jp_cfg` controls the resolution.
 
-##############################
-# Download PRACE TEST Case A #
-##############################
+```
+rm -f time.step solver.stat output.namelist.dyn ocean.output  slurm-*  GYRE_* mesh_mask_00*
+jp_cfg=4
+sed -i -r \
+    -e 's/^( *nn_itend *=).*/\1 21600/' \
+    -e 's/^( *nn_stock *=).*/\1 21600/' \
+    -e 's/^( *nn_write *=).*/\1 1000/' \
+    -e 's/^( *jp_cfg *=).*/\1 '"$jp_cfg"'/' \
+    -e 's/^( *jpidta *=).*/\1 '"$(( 30 * jp_cfg +2))"'/' \
+    -e 's/^( *jpjdta *=).*/\1 '"$(( 20 * jp_cfg +2))"'/' \
+    -e 's/^( *jpiglo *=).*/\1 '"$(( 30 * jp_cfg +2))"'/' \
+    -e 's/^( *jpjglo *=).*/\1 '"$(( 20 * jp_cfg +2))"'/' \
+    namelist_cfg
 
-cd ../../../..
-wget http://www.prace-ri.eu/UEABS/NEMO/NEMO_TestCaseA.tar.gz
-tar -x -v --strip-components=1 -f NEMO_TestCaseA.tar.gz
+```
 
-#########################################
-# Build PRACE Test Case A configuration #
-#########################################
 
-cd NEMOGCM/CONFIG/
+### Run the experiment as a SLURM batch job
 
-cp ORCA12.L75-PRACE/cpp_ORCA12.L75-PRACE.fcm ORCA12.L75-PRACE/cpp_ORCA12.L75-PRACE.fcm.orig
-sed 's/.*/& key_nosignedzero/' < ORCA12.L75-PRACE/cpp_ORCA12.L75-PRACE.fcm.orig \
-    > ORCA12.L75-PRACE/cpp_ORCA12.L75-PRACE.fcm
-
-./makenemo -m MY_CONFIG -n ORCA12.L75-PRACE
-
-#######################################
-# Run PRACE Test Case A configuration #
-#######################################
-
-cd ORCA12.L75-PRACE/EXP00
-ln -s ../../../../DATA_CONFIG_ORCA12/* .
-ln -s ../../../../FORCING/* .
-test -f namelist.orig || cp namelist namelist.orig
-
-fixnml() {
-    local name value prog=""
-    for arg in "$@"; do
-        name="${arg%%=*}"
-	value=$(printf %q "${arg#*=}")
-	value="${value//\//\/}"
-        prog="s/(^ *${name} *=).*/\\1 ${value}/"$'\n'"$prog"
-    done
-    sed -r -e "$prog"
-}
-
-fixnml cn_dirout="${WRKDIR}/ORCA12.L75-PRACE-DIMGPROC.1" < namelist.orig > namelist
-
-aprun -n 16 opa
+```
+sbatch -N 3 -p test -t 30 << EOF
+#!/bin/bash
+aprun -n 48 ../BLD/bin/nemo.exe : -n 8 ../../../../xios-2.0/bin/xios_server.exe
+EOF
+```
