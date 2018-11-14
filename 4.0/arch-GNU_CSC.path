@@ -1,0 +1,6 @@
+NETCDF_INCDIR="-I$NETCDF_DIR/include"
+NETCDF_LIBDIR="-L$NETCDF_DIR/lib"
+NETCDF_LIB="-lnetcdf -lnetcdff"
+HDF5_INCDIR="-I$H5ROOT/include"
+HDF5_LIBDIR="-L$H5ROOT/lib"
+HDF5_LIB="-lhdf5_hl -lhdf5 -lhdf5 -lz -lcurl"
