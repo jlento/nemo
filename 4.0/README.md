@@ -6,6 +6,8 @@ Juha Lento, CSC, 2018-11-15
 
 On going...
 
+- xios-2.5 builds and install on sisu.csc.fi with GNU compilers
+
 ## Dowload sources
 
 ```bash
@@ -19,7 +21,3 @@ git clone https://github.com/jlento/nemo.git
 The build commands for different compilers and machines are in files
 `build-<compiler>-<host>.sh`. The build instructions for xios-2.5 dependency are
 in subdirectory xios/2.5, if the library is not already available.
-
-## Known issues, etc.
-
-- Xios build fails to link 'xios_server.exe', but who cares. The library itself in 'lib/xios.a'
