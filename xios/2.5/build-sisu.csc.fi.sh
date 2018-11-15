@@ -12,11 +12,13 @@ set -ex
 
 # Environment setup
 
-module swap PrgEnv-cray PrgEnv-gnu
 module load svn craypkg-gen cray-hdf5-parallel cray-netcdf-hdf5parallel
 
 XIOS_VERSION=2.5
-PE_LEVEL=5.1
+if [[ "$PE_ENV" = "GNU" ]]; then
+    PE_LEVEL=5.1
+fi
+
 
 # Checkout sources
 
@@ -33,7 +35,7 @@ cat > arch/arch-gnu-sisu.csc.fi.fcm <<EOF
 %LINKER         ftn
 %BASE_CFLAGS    -ansi
 %PROD_CFLAGS    -O3 -DBOOST_DISABLE_ASSERTS
-%BASE_FFLAGS    -D__NONE__ -ffree-line-length-none
+%BASE_FFLAGS    -D__NONE__ $(case $PE_ENV in CRAY) echo '-em -m 4 -e0 -eZ';;GNU) echo '-ffree-line-length-none';;esac)
 %PROD_FFLAGS    -O3
 %BASE_INC       -D__NONE__
 %BASE_LD        -lstdc++
@@ -42,7 +44,7 @@ cat > arch/arch-gnu-sisu.csc.fi.fcm <<EOF
 %MAKE           make
 EOF
 
-./make_xios --arch gnu-sisu.csc.fi --job 8
+./make_xios --arch sisu.csc.fi --job 8
 
 
 # Manually copy files...
