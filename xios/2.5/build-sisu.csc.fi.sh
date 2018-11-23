@@ -33,9 +33,9 @@ cat > arch/arch-gnu-sisu.csc.fi.fcm <<EOF
 %CCOMPILER      CC
 %FCOMPILER      ftn
 %LINKER         ftn
-%BASE_CFLAGS    $(case $PE_ENV in GNU) echo '-ansi';;esac)
+%BASE_CFLAGS    $(case $PE_ENV in (GNU) echo '-ansi';;esac)
 %PROD_CFLAGS    -O3 -DBOOST_DISABLE_ASSERTS
-%BASE_FFLAGS    -D__NONE__ $(case $PE_ENV in CRAY) echo '-em -m 4 -e0 -eZ';;GNU) echo '-ffree-line-length-none';;esac)
+%BASE_FFLAGS    -D__NONE__ $(case $PE_ENV in (CRAY) echo '-em -m 4 -e0 -eZ';; (GNU) echo '-ffree-line-length-none';;esac)
 %PROD_FFLAGS    -O3
 %BASE_INC       -D__NONE__
 %BASE_LD        -lstdc++
