@@ -29,8 +29,8 @@ nemo_revision=$(svn info | sed -n 's/Revision: \([0-9]\+\)/\1/p')
 cat > arch/arch-${compiler}-taito.csc.fi.fcm <<EOF
 %CC                  mpicc
 %CFLAGS              -O0
-%CPP	               cpp
-%FC	                 mpif90
+%CPP                 cpp
+%FC                  mpif90
 %FCFLAGS             $(case $compiler in (gnu) echo '-fdefault-real-8 -O3 -funroll-all-loops -fcray-pointer -ffree-line-length-none';; (intel) echo '-O3 -i4 -r8 -fp-model precise -fno-alias';; esac)
 %FFLAGS              %FCFLAGS
 %LD                  mpif90
