@@ -27,34 +27,31 @@ cd trunk
 nemo_revision=$(svn info | sed -n 's/Revision: \([0-9]\+\)/\1/p')
 
 cat > arch/arch-${compiler}-taito.csc.fi.fcm <<EOF
-%CC                  cc
+%CC                  mpicc
 %CFLAGS              -O0
 %CPP	               cpp
-%FC	                 ftn
-%FCFLAGS             $(case $PE_ENV in (GNU) echo '-fdefault-real-8 -O3 -funroll-all-loops -fcray-pointer -ffree-line-length-none';; (CRAY) echo '-em -s real64 -s integer32  -O2 -hflex_mp=intolerant -e0 -ez';; esac)
+%FC	                 mpif90
+%FCFLAGS             $(case $compiler in (gnu) echo '-fdefault-real-8 -O3 -funroll-all-loops -fcray-pointer -ffree-line-length-none';; (intel) echo '-O3 -i4 -r8 -fp-model precise -fno-alias';; esac)
 %FFLAGS              %FCFLAGS
-%LD                  ftn
-%LDFLAGS             -hbyteswapio
+%LD                  mpif90
+%LDFLAGS
 %FPPFLAGS            -P -C -traditional-cpp
 %AR                  ar
-%ARFLAGS             -r
+%ARFLAGS             rs
 %MK                  make
 
 %NCDF_HOME           $NETCDF_DIR
-%HDF5_HOME           $HDF5_DIR
-%XIOS_HOME           $(find_root xios)
+%HDF5_HOME           $H5ROOT
+%XIOS_HOME           $XIOS_DIR
 %OASIS_HOME          /not/defined
-%NCDF_INC            -I%NCDF_HOME/include -I%HDF5_HOME/include
-%NCDF_LIB            -L%NCDF_HOME/lib -lnetcdff -lnetcdf
+%NCDF_INC            -I%NCDF_HOME/include
+%NCDF_LIB            -L%NCDF_HOME/lib -lnetcdff -lnetcdf -L%HDF5_HOME/lib -lhdf5_hl -lhdf5 -lhdf5
 %XIOS_INC            -I%XIOS_HOME/inc
-%XIOS_LIB            -L%XIOS_HOME/lib -lxios
-%OASIS_INC           -I%OASIS_HOME/build/lib/mct -I%OASIS_HOME/build/lib/psmile.MPI1
-%OASIS_LIB           -L%OASIS_HOME/lib -lpsmile.MPI1 -lmct -lmpeu -lscrip
-%USER_INC            %XIOS_INC %OASIS_INC %NCDF_INC
-%USER_LIB            %XIOS_LIB %OASIS_LIB %NCDF_LIB
+%XIOS_LIB            -L%XIOS_HOME/lib -lxios -lstdc++
+
+%USER_INC            %XIOS_INC %NCDF_INC
+%USER_LIB            %XIOS_LIB %NCDF_LIB
 EOF
 
 
-# Test
-
-./makenemo -m gnu-sisu.csc.fi -r 'GYRE_PISCES' -n 'MY_GYRE_PISCES'
+./makenemo -j 8 -m ${compiler}-taito.csc.fi -r 'GYRE_PISCES' -n 'MY_GYRE_PISCES'
