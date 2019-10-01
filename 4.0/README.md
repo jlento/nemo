@@ -1,19 +1,10 @@
-# Build nemo 4.0 beta
+# NEMO 4.0 build instructions for puhti.csc.fi
 
-Juha Lento, CSC, 2018-11-15
+Juha Lento, CSC, 2019-09-30
 
-## Status
-
-On going...
-
-- xios-2.5 builds and install on sisu.csc.fi with GNU compilers
-
-## Dowload sources
-
-```bash
-svn co ​http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.5
-svn co http://forge.ipsl.jussieu.fr/nemo/svn/NEMO/trunk
-git clone https://github.com/jlento/nemo.git
+```console
+svn co https://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.5
+svn co https://forge.ipsl.jussieu.fr/nemo/svn/NEMO/releases/release-4.0
 ```
 
 ## Build

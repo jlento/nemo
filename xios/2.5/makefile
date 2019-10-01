@@ -9,7 +9,9 @@
 #      make -f <xios-2.5 root dir>/makefile -j 8
 
 # To include oasis, add -DUSE_OMCT wherever there is -DUSING_NETCDF_PAR, and
-# -loasis wherever there is -lnetcdf, or about so :)
+# -loasis wherever there is -lnetcdf, or about :)
+
+DESTDIR    = $(CURDIR)
 
 XIOS_ROOT  = $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 
@@ -25,7 +27,7 @@ FSRC       = src src/interface/fortran src/interface/fortran_attr
 INCLUDES   = $(patsubst %,-I$(XIOS_ROOT)%,$(INCSRC)) \
              -I$(BOOST_INSTALL_ROOT)/include
 
-LDFLAGS    = -L$(NETCDF_INSTALL_ROOT)/lib
+LDFLAGS    = -L$(NETCDF_INSTALL_ROOT)/lib -Wl,-rpath=$(NETCDF_INSTALL_ROOT)/lib
 LIBS       = -lnetcdf -lstdc++
 
 CXX        = mpiCC
@@ -74,6 +76,13 @@ realclean: clean
 
 clean:
 	rm -f *.o *.mod libxios.a xios_server.exe
+
+
+xios.o : ixios.F90 ixios.o
+	$(FC) -c $(FCFLAGS) -o $@ $<
+
+xios_interfaces.o : ixios_interfaces.F90 ixios_interfaces.o
+	$(FC) -c $(FCFLAGS) -o $@ $<
 
 fxios_oasis_init.o : oasis_interface.F90
 	$(FC) -c $(FCFLAGS) -o $@ $<
